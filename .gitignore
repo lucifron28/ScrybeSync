@@ -205,3 +205,5 @@ cython_debug/
 /frontend/yarn-debug.log*
 /frontend/yarn-error.log*
 /frontend/.eslintcache
+
+.idea/
