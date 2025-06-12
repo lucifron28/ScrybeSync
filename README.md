@@ -51,7 +51,7 @@ A full-stack web application for uploading audio/video, transcribing with Whispe
 
 ## Project Structure
 
-\`\`\`text
+```text
 scrybesync/
 │
 ├── backend/
@@ -91,7 +91,7 @@ scrybesync/
     │   └── main.jsx
     ├── tailwind.config.js
     └── package.json
-\`\`\`
+```
 
 ## System Design
 
