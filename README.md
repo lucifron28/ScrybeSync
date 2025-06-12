@@ -218,4 +218,4 @@ Access at `http://localhost:3000`
 
 ## License
 
-MIT © Your Name
+MIT © Ron Vincent Cada
