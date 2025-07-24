@@ -12,5 +12,5 @@ class CategorySerializer(serializers.ModelSerializer):
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        fields = ['id', 'title', 'content', 'category', 'user', 'created_at', 'updated_at']
+        fields = ['id', 'title', 'content', 'category', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
