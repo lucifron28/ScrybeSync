@@ -1,0 +1,30 @@
+### Test Login Endpoint
+POST http://127.0.0.1:8000/api/users/login/
+Content-Type: application/json
+
+{
+  "username": "ron",
+  "password": "123"
+}
+
+### Test Register Endpoint
+POST http://127.0.0.1:8000/api/users/register/
+Content-Type: application/json
+
+{
+  "username": "ron2",
+  "email": "ron@example.com",
+  "password": "roncada123",
+  "confirm_password": "roncada123",
+  "first_name": "Ron",
+  "last_name": "Ae"
+}
+
+### Test registered User to login
+POST http://127.0.0.1:8000/api/users/login/
+Content-Type: application/json
+
+{
+  "username": "ron2",
+  "password": "roncada123"
+}
