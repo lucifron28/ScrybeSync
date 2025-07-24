@@ -46,17 +46,16 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 
 ### Test Notes - List all notes
-GET http://127.0.0.1:8000/api/notes/
+GET http://127.0.0.1:8000/api/notes/notes/
 Content-Type: application/json
-Authorization: Bearer <your_token_here>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
 
 ### Test Notes - Create a new note
-POST http://127.0.0.1:8000/api/notes/
+POST http://127.0.0.1:8000/api/notes/notes/
 Content-Type: application/json
-Authorization: Bearer <your_token_here>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
 
 {
   "title": "New Note",
-  "content": "Content for new note",
-  "category": 1
+  "content": "Content for the new note"
 }
