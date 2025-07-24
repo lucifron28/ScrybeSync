@@ -28,3 +28,35 @@ Content-Type: application/json
   "username": "ron2",
   "password": "roncada123"
 }
+
+### Test Categories - List all categories
+GET http://127.0.0.1:8000/api/notes/categories/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ1OTA1LCJpYXQiOjE3NTMzNDU2MDUsImp0aSI6IjhiOTc3NGQ1Y2JjZjQwYWQ5NzBlMThiN2EwN2QwOGU2IiwidXNlcl9pZCI6Mn0.PuG9HSGFo82CedRmEg3Bx_NzAdgPDuqMwapjajtmK5w
+
+### Test Categories - Create a new category
+POST http://127.0.0.1:8000/api/notes/categories/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ1OTA1LCJpYXQiOjE3NTMzNDU2MDUsImp0aSI6IjhiOTc3NGQ1Y2JjZjQwYWQ5NzBlMThiN2EwN2QwOGU2IiwidXNlcl9pZCI6Mn0.PuG9HSGFo82CedRmEg3Bx_NzAdgPDuqMwapjajtmK5w
+
+{
+  "name": "New Category",
+  "description": "Description for new category"
+}
+
+
+### Test Notes - List all notes
+GET http://127.0.0.1:8000/api/notes/
+Content-Type: application/json
+Authorization: Bearer <your_token_here>
+
+### Test Notes - Create a new note
+POST http://127.0.0.1:8000/api/notes/
+Content-Type: application/json
+Authorization: Bearer <your_token_here>
+
+{
+  "title": "New Note",
+  "content": "Content for new note",
+  "category": 1
+}
