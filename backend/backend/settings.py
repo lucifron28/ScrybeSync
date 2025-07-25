@@ -185,19 +185,15 @@ CSRF_COOKIE_SECURE = False  # NOTE: Set to True in production
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 
-# OpenAI API Configuration
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 
-# Whisper Configuration
 WHISPER_MODEL = os.getenv('WHISPER_MODEL', 'base')
 WHISPER_DEVICE = os.getenv('WHISPER_DEVICE', 'cpu')
 
-# File Upload Configuration
 MAX_UPLOAD_SIZE = os.getenv('MAX_UPLOAD_SIZE', '100MB')
 ALLOWED_AUDIO_FORMATS = os.getenv('ALLOWED_AUDIO_FORMATS', 'mp3,wav,m4a,flac,ogg').split(',')
 ALLOWED_VIDEO_FORMATS = os.getenv('ALLOWED_VIDEO_FORMATS', 'mp4,avi,mov,mkv,webm').split(',')
 
-# Celery Configuration
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
 CELERY_ACCEPT_CONTENT = ['json']
@@ -205,6 +201,5 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
-# Media files configuration
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
