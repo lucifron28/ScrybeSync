@@ -59,3 +59,136 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
   "title": "New Note",
   "content": "Content for the new note"
 }
+
+### ===== TRANSCRIBER API TESTS =====
+
+### Test Transcripts - List all transcripts
+GET http://127.0.0.1:8000/api/transcriber/transcripts/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+### Test Transcripts - Upload audio file for transcription
+POST http://127.0.0.1:8000/api/transcriber/transcripts/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Test Audio Upload
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test_audio.mp3"
+Content-Type: audio/mpeg
+
+[Binary audio file content would go here]
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Test Transcripts - Get specific transcript details
+GET http://127.0.0.1:8000/api/transcriber/transcripts/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+### Test Transcripts - Retry failed transcription
+POST http://127.0.0.1:8000/api/transcriber/transcripts/1/retry_transcription/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+### Test Transcripts - Get status summary
+GET http://127.0.0.1:8000/api/transcriber/transcripts/status_summary/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+### Test Transcripts - Delete transcript
+DELETE http://127.0.0.1:8000/api/transcriber/transcripts/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+### ===== SUMMARIZER API TESTS =====
+
+### Test Summaries - List all summaries
+GET http://127.0.0.1:8000/api/summarizer/summaries/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+### Test Summaries - Create summary for transcript
+POST http://127.0.0.1:8000/api/summarizer/summaries/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+{
+  "transcript_id": 1
+}
+
+### Test Summaries - Get specific summary details
+GET http://127.0.0.1:8000/api/summarizer/summaries/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+### Test Summaries - Regenerate summary
+POST http://127.0.0.1:8000/api/summarizer/summaries/1/regenerate/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+### Test Summaries - Get status summary
+GET http://127.0.0.1:8000/api/summarizer/summaries/status_summary/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+### Test Summaries - Update summary (partial update)
+PATCH http://127.0.0.1:8000/api/summarizer/summaries/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+{
+  "status": "completed"
+}
+
+### Test Summaries - Delete summary
+DELETE http://127.0.0.1:8000/api/summarizer/summaries/1/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+### ===== ERROR HANDLING TESTS =====
+
+### Test Transcripts - Upload invalid file type
+POST http://127.0.0.1:8000/api/transcriber/transcripts/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="title"
+
+Invalid File Test
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="file"; filename="test.txt"
+Content-Type: text/plain
+
+This is a text file, not an audio file.
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### Test Summaries - Create summary for non-existent transcript
+POST http://127.0.0.1:8000/api/summarizer/summaries/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+{
+  "transcript_id": 99999
+}
+
+### Test Summaries - Create summary for incomplete transcript
+POST http://127.0.0.1:8000/api/summarizer/summaries/
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUzMzQ3MDkyLCJpYXQiOjE3NTMzNDY3OTIsImp0aSI6IjAzNDJkMDBkZjlmZTQwMDdhZGZkOWQ1ZDUyMmQ1YzdkIiwidXNlcl9pZCI6Mn0.lsWc_8Z0apTydiDzJmO2lP73tlFgebldFPPlKt44LGo
+
+{
+  "transcript_id": 2
+}
+
+### Test Unauthenticated Access - Should return 401
+GET http://127.0.0.1:8000/api/transcriber/transcripts/
+Content-Type: application/json
+
+### Test Invalid Token - Should return 401
+GET http://127.0.0.1:8000/api/transcriber/transcripts/
+Content-Type: application/json
+Authorization: Bearer invalid_token_here
