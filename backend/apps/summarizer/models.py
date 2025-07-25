@@ -52,7 +52,6 @@ class Summary(models.Model):
 
     @property
     def has_content(self):
-        """Check if summary has any content"""
         return bool(
             self.main_summary or
             self.key_points or
