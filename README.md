@@ -126,7 +126,7 @@ MAX_UPLOAD_SIZE=100MB
 
 ### Frontend (`frontend/.env`)
 ```bash
-VITE_API_BASE_URL=http://127.0.0.1:8000/api
+VITE_API_BASE_URL=http://localhost:8000/api
 ```
 
 ---
@@ -145,9 +145,12 @@ python manage.py runserver
 
 To run Celery worker:
 ```bash
+# Linux / macOS
 celery -A backend worker -l info
-```
 
+# Windows (requires solo pool due to lack of fork support)
+celery -A backend worker -l info --pool=solo
+```
 To run backend tests:
 ```bash
 python manage.py test

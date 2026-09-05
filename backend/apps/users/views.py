@@ -128,7 +128,7 @@ class LogoutView(generics.GenericAPIView):
                 status=status.HTTP_200_OK
             )
             
-            response.delete_cookie('refresh_token')
+            response.delete_cookie('refresh_token', samesite=settings.SESSION_COOKIE_SAMESITE)
             
             return response
             
@@ -137,5 +137,5 @@ class LogoutView(generics.GenericAPIView):
                 {'message': 'Logged out'}, 
                 status=status.HTTP_200_OK
             )
-            response.delete_cookie('refresh_token')
+            response.delete_cookie('refresh_token', samesite=settings.SESSION_COOKIE_SAMESITE)
             return response

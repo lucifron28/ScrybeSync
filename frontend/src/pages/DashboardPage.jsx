@@ -38,6 +38,7 @@ const DashboardPage = () => {
       setNoteCount(null);
       setTranscripts([]);
       setNotes([]);
+    } finally {
       setLoading(false);
     }
   }, []);

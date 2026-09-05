@@ -34,7 +34,7 @@ class TranscriptUploadSerializer(serializers.ModelSerializer):
         return value
     
     def _parse_size(self, size_str):
-        size_str = size_str.upper()
+        size_str = str(size_str).upper()
         if size_str.endswith('KB'):
             return int(size_str[:-2]) * 1024
         elif size_str.endswith('MB'):
@@ -48,7 +48,7 @@ class TranscriptUploadSerializer(serializers.ModelSerializer):
         file = validated_data['file']
         validated_data['file_name'] = file.name
         validated_data['file_size'] = file.size
-        validated_data['file_type'] = file.content_type
+        validated_data['file_type'] = getattr(file, 'content_type', '') or 'application/octet-stream'
         validated_data['user'] = self.context['request'].user
         
         if not validated_data.get('title'):
