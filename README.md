@@ -20,7 +20,7 @@ ScrybeSync is a practical personal productivity tool, not a commercial SaaS appl
 - **Media Upload**: File upload support for common audio formats (`.mp3`, `.wav`, `.m4a`, `.flac`, `.ogg`) and video formats (`.mp4`, `.avi`, `.mov`, `.mkv`, `.webm`).
 - **Asynchronous Transcription**: Background transcription worker via Celery and OpenAI Whisper.
 - **Retry Mechanism**: Dedicated retry endpoint strictly for failed transcriptions.
-- **Transcript Summarization**: Asynchronous structured summary generation for completed transcripts using DeepSeek V4 Flash via the official OpenAI Python SDK.
+- **Transcript Summarization**: Asynchronous structured summary generation for completed transcripts using DeepSeek V4 Flash via the official OpenAI Python SDK Responses API with JSON Schema enforcement.
 - **Notes Management**: Create, view, update, and delete personal notes.
 - **User-Isolated Categories**: Categories are scoped per user (e.g. two users can both create a "School" category, but a single user cannot create duplicates). Server-side validation prevents cross-user category assignment.
 - **Practical Workspace**: Minimal dashboard featuring recent transcriptions, recent notes, and real item counts.
@@ -40,7 +40,7 @@ ScrybeSync is a practical personal productivity tool, not a commercial SaaS appl
 - **Database**: PostgreSQL (with SQLite support for local development/testing)
 - **Task Queue**: Celery & Redis
 - **Transcription Engine**: OpenAI Whisper & FFmpeg
-- **LLM Integration**: DeepSeek V4 Flash (via OpenAI Python SDK)
+- **LLM Integration**: DeepSeek V4 Flash (via OpenAI Python SDK Responses API with JSON Schema)
 
 ### Frontend
 - **Framework**: React 19 & Vite 6
