@@ -91,7 +91,7 @@ def _validate_summary_data(data):
 
 def _generate_deepseek_summary(transcript_text, client=None, model=None):
     """
-    Generate structured summary using DeepSeek via the official OpenAI Python SDK.
+    Generate structured summary using DeepSeek via the official OpenAI Python SDK Responses API.
     """
     model_name = model or getattr(settings, 'SUMMARY_MODEL', 'deepseek-v4-flash')
 
@@ -102,28 +102,33 @@ def _generate_deepseek_summary(transcript_text, client=None, model=None):
         base_url = getattr(settings, 'DEEPSEEK_BASE_URL', 'https://api.deepseek.com')
         client = OpenAI(api_key=api_key, base_url=base_url)
 
-    system_prompt = (
-        "You are an expert transcription summarizer. You summarize only the supplied transcript. "
+    instructions = (
+        "You are an expert transcription summarizer. Summarize only the supplied transcript. "
         "Do not invent facts. Preserve uncertainty. Do not fabricate quotes. "
-        "If no action items are mentioned, return an empty list for action_items. "
-        "You must respond with valid JSON adhering strictly to this schema:\n"
-        f"{json.dumps(SUMMARY_SCHEMA, indent=2)}"
+        "Action items must represent actual tasks or decisions mentioned in the transcript. "
+        "If no action items are mentioned, provide an empty list."
     )
 
     try:
-        response = client.chat.completions.create(
+        response = client.responses.create(
             model=model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Transcript to summarize:\n\n{transcript_text}"}
-            ],
-            response_format={"type": "json_object"},
+            instructions=instructions,
+            input=f"Transcript to summarize:\n\n{transcript_text}",
+            text={
+                "format": {
+                    "type": "json_schema",
+                    "name": "transcript_summary",
+                    "strict": True,
+                    "schema": SUMMARY_SCHEMA,
+                }
+            },
+            reasoning={"effort": "none"},
             extra_body={"thinking": {"type": "disabled"}},
             temperature=0.3,
-            max_tokens=2048,
+            max_output_tokens=2048,
         )
 
-        content = response.choices[0].message.content
+        content = response.output_text
         if not content:
             raise ValueError("Empty response received from DeepSeek API")
 
@@ -135,7 +140,6 @@ def _generate_deepseek_summary(transcript_text, client=None, model=None):
     except Exception as e:
         logger.error(f"DeepSeek API error: {str(e)}")
         raise e
-
 
 @shared_task(bind=True)
 def generate_summary_task(self, summary_id):

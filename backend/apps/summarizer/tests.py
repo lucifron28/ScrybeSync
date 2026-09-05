@@ -243,21 +243,15 @@ class SummaryTaskTests(TestCase):
         mock_openai_cls.return_value = mock_client
 
         mock_response = MagicMock()
-        mock_response.choices = [
-            MagicMock(
-                message=MagicMock(
-                    content=json.dumps({
-                        "main_summary": "This is a detailed overview of the machine learning lecture covering core models.",
-                        "key_points": ["Supervised learning requires labeled data", "Neural networks use gradient descent"],
-                        "questions": ["How does gradient descent adjust weights?"],
-                        "highlights": ["Gradient descent is foundational to deep learning"],
-                        "topics": ["Machine Learning", "Neural Networks"],
-                        "action_items": ["Review gradient descent math"]
-                    })
-                )
-            )
-        ]
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_response.output_text = json.dumps({
+            "main_summary": "This is a detailed overview of the machine learning lecture covering core models.",
+            "key_points": ["Supervised learning requires labeled data", "Neural networks use gradient descent"],
+            "questions": ["How does gradient descent adjust weights?"],
+            "highlights": ["Gradient descent is foundational to deep learning"],
+            "topics": ["Machine Learning", "Neural Networks"],
+            "action_items": ["Review gradient descent math"]
+        })
+        mock_client.responses.create.return_value = mock_response
 
         with self.settings(DEEPSEEK_API_KEY='test-key', SUMMARY_MODEL='deepseek-v4-flash'):
             from .tasks import generate_summary_task
@@ -277,13 +271,20 @@ class SummaryTaskTests(TestCase):
         self.assertIsNotNone(self.summary.completed_at)
         self.assertEqual(self.summary.error_message, '')
         self.assertEqual(result['status'], 'completed')
+        mock_client.responses.create.assert_called_once()
+        call_kwargs = mock_client.responses.create.call_args.kwargs
+        self.assertEqual(call_kwargs['model'], 'deepseek-v4-flash')
+        self.assertEqual(call_kwargs['text']['format']['type'], 'json_schema')
+        self.assertTrue(call_kwargs['text']['format']['strict'])
+        self.assertEqual(call_kwargs['reasoning'], {'effort': 'none'})
+        self.assertEqual(call_kwargs['extra_body'], {'thinking': {'type': 'disabled'}})
 
     @patch('apps.summarizer.tasks.OpenAI')
     def test_generate_summary_task_api_failure(self, mock_openai_cls):
         """Test task marks summary failed and records error message when API fails"""
         mock_client = MagicMock()
         mock_openai_cls.return_value = mock_client
-        mock_client.chat.completions.create.side_effect = RuntimeError("DeepSeek service timeout")
+        mock_client.responses.create.side_effect = RuntimeError("DeepSeek service timeout")
 
         with self.settings(DEEPSEEK_API_KEY='test-key', SUMMARY_MODEL='deepseek-v4-flash'):
             from .tasks import generate_summary_task
