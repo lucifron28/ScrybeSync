@@ -74,8 +74,8 @@ def _validate_summary_data(data):
         if field not in data:
             raise ValueError(f"Missing required field in summary response: {field}")
 
-    if not isinstance(data["main_summary"], str):
-        raise ValueError("Field 'main_summary' must be a string")
+    if not isinstance(data["main_summary"], str) or not data["main_summary"].strip():
+        raise ValueError("Field 'main_summary' must be a non-empty string")
 
     array_fields = ["key_points", "questions", "highlights", "topics", "action_items"]
     validated = {"main_summary": data["main_summary"].strip()}
@@ -84,8 +84,19 @@ def _validate_summary_data(data):
         val = data[field]
         if not isinstance(val, list):
             raise ValueError(f"Field '{field}' must be a list of strings")
-        validated[field] = [str(item).strip() for item in val if str(item).strip()]
 
+        cleaned_items = []
+        for idx, item in enumerate(val):
+            if not isinstance(item, str):
+                raise ValueError(
+                    f"Item at index {idx} in '{field}' must be a string, got {type(item).__name__}"
+                )
+            stripped = item.strip()
+            if not stripped:
+                raise ValueError(f"Item at index {idx} in '{field}' cannot be an empty string")
+            cleaned_items.append(stripped)
+
+        validated[field] = cleaned_items
     return validated
 
 

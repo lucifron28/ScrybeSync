@@ -318,7 +318,90 @@ class SummaryTaskTests(TestCase):
 
         self.summary.refresh_from_db()
         self.assertEqual(self.summary.status, 'failed')
-        self.assertIn("No transcript text available", self.summary.error_message)
+
+    def test_validate_summary_data_strict_validation(self):
+        """Test _validate_summary_data strictly validates types and rejects non-strings"""
+        from .tasks import _validate_summary_data
+
+        base_valid = {
+            "main_summary": "Valid summary",
+            "key_points": ["Point 1"],
+            "questions": ["Question 1?"],
+            "highlights": ["Highlight 1"],
+            "topics": ["Topic 1"],
+            "action_items": ["Action 1"]
+        }
+        # Should succeed with valid data
+        validated = _validate_summary_data(base_valid)
+        self.assertEqual(validated["main_summary"], "Valid summary")
+        self.assertEqual(validated["key_points"], ["Point 1"])
+
+        # Rejects dict in array
+        with self.assertRaises(ValueError) as ctx:
+            bad_dict = {**base_valid, "topics": [{"name": "Machine Learning"}]}
+            _validate_summary_data(bad_dict)
+        self.assertIn("must be a string, got dict", str(ctx.exception))
+
+        # Rejects integer in array
+        with self.assertRaises(ValueError) as ctx:
+            bad_int = {**base_valid, "questions": [101]}
+            _validate_summary_data(bad_int)
+        self.assertIn("must be a string, got int", str(ctx.exception))
+
+        # Rejects boolean in array
+        with self.assertRaises(ValueError) as ctx:
+            bad_bool = {**base_valid, "highlights": [True]}
+            _validate_summary_data(bad_bool)
+        self.assertIn("must be a string, got bool", str(ctx.exception))
+
+        # Rejects null in array
+        with self.assertRaises(ValueError) as ctx:
+            bad_none = {**base_valid, "key_points": [None]}
+            _validate_summary_data(bad_none)
+        self.assertIn("must be a string, got NoneType", str(ctx.exception))
+
+        # Rejects empty string element in array
+        with self.assertRaises(ValueError) as ctx:
+            bad_empty = {**base_valid, "action_items": ["   "]}
+            _validate_summary_data(bad_empty)
+        self.assertIn("cannot be an empty string", str(ctx.exception))
+
+        # Rejects non-string main_summary
+        with self.assertRaises(ValueError) as ctx:
+            bad_main = {**base_valid, "main_summary": 12345}
+            _validate_summary_data(bad_main)
+        self.assertIn("must be a non-empty string", str(ctx.exception))
+
+        # Rejects missing required field
+        with self.assertRaises(ValueError) as ctx:
+            missing_field = {"main_summary": "Only summary"}
+            _validate_summary_data(missing_field)
+        self.assertIn("Missing required field", str(ctx.exception))
+
+    @patch('apps.summarizer.tasks.OpenAI')
+    def test_generate_summary_task_invalid_structure_fails(self, mock_openai_cls):
+        """Test task marks summary failed and raises when model returns malformed structure"""
+        mock_client = MagicMock()
+        mock_openai_cls.return_value = mock_client
+        mock_response = MagicMock()
+        mock_response.output_text = json.dumps({
+            "main_summary": "Valid overview",
+            "key_points": ["Valid point"],
+            "questions": ["Valid question?"],
+            "highlights": ["Valid highlight"],
+            "topics": [{"name": "Should not be a dict"}],
+            "action_items": []
+        })
+        mock_client.responses.create.return_value = mock_response
+
+        with self.settings(DEEPSEEK_API_KEY='test-key'):
+            from .tasks import generate_summary_task
+            with self.assertRaises(ValueError):
+                generate_summary_task(self.summary.id)
+
+        self.summary.refresh_from_db()
+        self.assertEqual(self.summary.status, 'failed')
+        self.assertIn("must be a string, got dict", self.summary.error_message)
 
 
 class SummaryAPITests(APITestCase):
