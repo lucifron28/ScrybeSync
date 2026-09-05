@@ -1,3 +1,4 @@
+import json
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -138,6 +139,57 @@ class SummarySerializerTest(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn('must be completed', str(serializer.errors))
 
+
+    def test_summary_create_serializer_empty_transcript(self):
+        empty_transcript = Transcript.objects.create(
+            user=self.user,
+            title='Empty Transcript',
+            file_name='empty.mp3',
+            file_size=1024,
+            file_type='audio/mpeg',
+            status='completed',
+            raw_text=''
+        )
+        serializer = SummaryCreateSerializer(
+            data={'transcript_id': empty_transcript.id},
+            context={'request': MagicMock(user=self.user)}
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('no text to summarize', str(serializer.errors))
+
+    def test_summary_create_serializer_other_user_transcript(self):
+        other_user = User.objects.create_user(
+            username='otheruser', email='other@example.com', password='password123'
+        )
+        other_transcript = Transcript.objects.create(
+            user=other_user,
+            title='Other Transcript',
+            file_name='other.mp3',
+            file_size=1024,
+            file_type='audio/mpeg',
+            status='completed',
+            raw_text='Valid raw text'
+        )
+        serializer = SummaryCreateSerializer(
+            data={'transcript_id': other_transcript.id},
+            context={'request': MagicMock(user=self.user)}
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("doesn't belong to you", str(serializer.errors))
+
+    def test_summary_create_serializer_duplicate_summary(self):
+        Summary.objects.create(
+            transcript=self.transcript,
+            user=self.user,
+            status='completed',
+            main_summary='Existing summary'
+        )
+        serializer = SummaryCreateSerializer(
+            data={'transcript_id': self.transcript.id},
+            context={'request': MagicMock(user=self.user)}
+        )
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('Summary already exists', str(serializer.errors))
     def test_summary_serializer_fields(self):
         summary = Summary.objects.create(
             transcript=self.transcript,
@@ -162,3 +214,168 @@ class SummarySerializerTest(TestCase):
 
         for field in expected_fields:
             self.assertIn(field, data)
+
+
+class SummaryTaskTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='taskuser', email='taskuser@example.com', password='password123'
+        )
+        self.transcript = Transcript.objects.create(
+            user=self.user,
+            title='Lecture on Machine Learning',
+            file_name='lecture.mp3',
+            file_size=2048,
+            file_type='audio/mpeg',
+            status='completed',
+            raw_text='Today we covered supervised learning, neural networks, and gradient descent algorithms.'
+        )
+        self.summary = Summary.objects.create(
+            transcript=self.transcript,
+            user=self.user,
+            status='pending'
+        )
+
+    @patch('apps.summarizer.tasks.OpenAI')
+    def test_generate_summary_task_success(self, mock_openai_cls):
+        """Test successful summary generation with mocked DeepSeek OpenAI SDK call"""
+        mock_client = MagicMock()
+        mock_openai_cls.return_value = mock_client
+
+        mock_response = MagicMock()
+        mock_response.choices = [
+            MagicMock(
+                message=MagicMock(
+                    content=json.dumps({
+                        "main_summary": "This is a detailed overview of the machine learning lecture covering core models.",
+                        "key_points": ["Supervised learning requires labeled data", "Neural networks use gradient descent"],
+                        "questions": ["How does gradient descent adjust weights?"],
+                        "highlights": ["Gradient descent is foundational to deep learning"],
+                        "topics": ["Machine Learning", "Neural Networks"],
+                        "action_items": ["Review gradient descent math"]
+                    })
+                )
+            )
+        ]
+        mock_client.chat.completions.create.return_value = mock_response
+
+        with self.settings(DEEPSEEK_API_KEY='test-key', SUMMARY_MODEL='deepseek-v4-flash'):
+            from .tasks import generate_summary_task
+            result = generate_summary_task(self.summary.id)
+
+        self.summary.refresh_from_db()
+        self.assertEqual(self.summary.status, 'completed')
+        self.assertEqual(self.summary.model_used, 'deepseek-v4-flash')
+        self.assertTrue(self.summary.main_summary.startswith('This is a detailed overview'))
+        self.assertEqual(len(self.summary.key_points), 2)
+        self.assertEqual(len(self.summary.questions), 1)
+        self.assertEqual(len(self.summary.highlights), 1)
+        self.assertEqual(len(self.summary.topics), 2)
+        self.assertEqual(len(self.summary.action_items), 1)
+        self.assertGreater(self.summary.word_count, 0)
+        self.assertIsNotNone(self.summary.processing_time)
+        self.assertIsNotNone(self.summary.completed_at)
+        self.assertEqual(self.summary.error_message, '')
+        self.assertEqual(result['status'], 'completed')
+
+    @patch('apps.summarizer.tasks.OpenAI')
+    def test_generate_summary_task_api_failure(self, mock_openai_cls):
+        """Test task marks summary failed and records error message when API fails"""
+        mock_client = MagicMock()
+        mock_openai_cls.return_value = mock_client
+        mock_client.chat.completions.create.side_effect = RuntimeError("DeepSeek service timeout")
+
+        with self.settings(DEEPSEEK_API_KEY='test-key', SUMMARY_MODEL='deepseek-v4-flash'):
+            from .tasks import generate_summary_task
+            with self.assertRaises(RuntimeError):
+                generate_summary_task(self.summary.id)
+
+        self.summary.refresh_from_db()
+        self.assertEqual(self.summary.status, 'failed')
+        self.assertIn("DeepSeek service timeout", self.summary.error_message)
+
+    def test_generate_summary_task_missing_api_key(self):
+        """Test task fails gracefully when DEEPSEEK_API_KEY is not configured"""
+        with self.settings(DEEPSEEK_API_KEY=None):
+            from .tasks import generate_summary_task
+            with self.assertRaises(ValueError):
+                generate_summary_task(self.summary.id)
+
+        self.summary.refresh_from_db()
+        self.assertEqual(self.summary.status, 'failed')
+        self.assertIn("DeepSeek API key not configured", self.summary.error_message)
+
+    def test_generate_summary_task_missing_transcript_text(self):
+        """Test task fails when transcript has no raw text"""
+        self.transcript.raw_text = ''
+        self.transcript.save()
+
+        with self.settings(DEEPSEEK_API_KEY='test-key'):
+            from .tasks import generate_summary_task
+            with self.assertRaises(ValueError):
+                generate_summary_task(self.summary.id)
+
+        self.summary.refresh_from_db()
+        self.assertEqual(self.summary.status, 'failed')
+        self.assertIn("No transcript text available", self.summary.error_message)
+
+
+class SummaryAPITests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='apiuser', email='apiuser@example.com', password='password123'
+        )
+        self.transcript = Transcript.objects.create(
+            user=self.user,
+            title='Completed Meeting',
+            file_name='meeting.mp3',
+            file_size=1024,
+            file_type='audio/mpeg',
+            status='completed',
+            raw_text='Meeting discussion regarding Q3 goals and milestones.'
+        )
+        self.client.force_authenticate(user=self.user)
+
+    @patch('apps.summarizer.tasks.generate_summary_task.delay')
+    def test_create_summary_api_success(self, mock_task):
+        """Test POST /api/summarizer/summaries/ creates summary and enqueues Celery task"""
+        url = reverse('summary-list')
+        response = self.client.post(url, {'transcript_id': self.transcript.id})
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['transcript_id'], self.transcript.id)
+        self.assertEqual(response.data['status'], 'pending')
+        mock_task.assert_called_once()
+
+    @patch('apps.summarizer.tasks.generate_summary_task.delay')
+    def test_regenerate_summary_api_success(self, mock_task):
+        """Test POST /api/summarizer/summaries/{id}/regenerate/ resets state and queues task"""
+        summary = Summary.objects.create(
+            transcript=self.transcript,
+            user=self.user,
+            status='completed',
+            main_summary='Old summary content',
+            key_points=['Old point']
+        )
+        url = reverse('summary-regenerate', kwargs={'pk': summary.id})
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        summary.refresh_from_db()
+        self.assertEqual(summary.status, 'pending')
+        self.assertEqual(summary.main_summary, '')
+        self.assertEqual(summary.key_points, [])
+        mock_task.assert_called_once_with(summary.id)
+
+    def test_regenerate_summary_when_processing_fails(self):
+        """Test regeneration rejected when summary is currently processing"""
+        summary = Summary.objects.create(
+            transcript=self.transcript,
+            user=self.user,
+            status='processing'
+        )
+        url = reverse('summary-regenerate', kwargs={'pk': summary.id})
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('currently being processed', response.data['error'])

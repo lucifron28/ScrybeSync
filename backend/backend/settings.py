@@ -205,7 +205,9 @@ CSRF_COOKIE_SECURE = False  # NOTE: Set to True in production
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+DEEPSEEK_BASE_URL = os.getenv('DEEPSEEK_BASE_URL', 'https://api.deepseek.com')
+SUMMARY_MODEL = os.getenv('SUMMARY_MODEL', 'deepseek-v4-flash')
 
 WHISPER_MODEL = os.getenv('WHISPER_MODEL', 'base')
 WHISPER_DEVICE = os.getenv('WHISPER_DEVICE', 'cpu')
