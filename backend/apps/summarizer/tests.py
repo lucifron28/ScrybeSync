@@ -1,5 +1,6 @@
 import json
 from django.test import TestCase
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework.test import APITestCase
@@ -433,13 +434,22 @@ class SummaryAPITests(APITestCase):
 
     @patch('apps.summarizer.tasks.generate_summary_task.delay')
     def test_regenerate_summary_api_success(self, mock_task):
-        """Test POST /api/summarizer/summaries/{id}/regenerate/ resets state and queues task"""
+        """Test POST /api/summarizer/summaries/{id}/regenerate/ resets content and metadata and queues task"""
         summary = Summary.objects.create(
             transcript=self.transcript,
             user=self.user,
             status='completed',
             main_summary='Old summary content',
-            key_points=['Old point']
+            key_points=['Old point'],
+            questions=['Old question?'],
+            highlights=['Old highlight'],
+            topics=['Old topic'],
+            action_items=['Old action'],
+            word_count=120,
+            processing_time=3.42,
+            model_used='deepseek-v4-flash',
+            completed_at=timezone.now(),
+            error_message='Old error'
         )
         url = reverse('summary-regenerate', kwargs={'pk': summary.id})
         response = self.client.post(url)
@@ -447,10 +457,25 @@ class SummaryAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         summary.refresh_from_db()
         self.assertEqual(summary.status, 'pending')
+        self.assertEqual(summary.error_message, '')
         self.assertEqual(summary.main_summary, '')
         self.assertEqual(summary.key_points, [])
-        mock_task.assert_called_once_with(summary.id)
+        self.assertEqual(summary.questions, [])
+        self.assertEqual(summary.highlights, [])
+        self.assertEqual(summary.topics, [])
+        self.assertEqual(summary.action_items, [])
+        self.assertIsNone(summary.word_count)
+        self.assertIsNone(summary.processing_time)
+        self.assertEqual(summary.model_used, '')
+        self.assertIsNone(summary.completed_at)
 
+        # Verify serialized response also reflects reset values
+        self.assertEqual(response.data['status'], 'pending')
+        self.assertIsNone(response.data['word_count'])
+        self.assertIsNone(response.data['processing_time'])
+        self.assertEqual(response.data['model_used'], '')
+        self.assertIsNone(response.data['completed_at'])
+        mock_task.assert_called_once_with(summary.id)
     def test_regenerate_summary_when_processing_fails(self):
         """Test regeneration rejected when summary is currently processing"""
         summary = Summary.objects.create(

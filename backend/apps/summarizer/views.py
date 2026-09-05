@@ -47,6 +47,10 @@ class SummaryViewSet(viewsets.ModelViewSet):
         summary.highlights = []
         summary.topics = []
         summary.action_items = []
+        summary.word_count = None
+        summary.processing_time = None
+        summary.model_used = ''
+        summary.completed_at = None
         summary.save()
 
         generate_summary_task.delay(summary.id)
