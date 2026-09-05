@@ -94,6 +94,7 @@ class TranscriptListSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'file_name', 'file_size', 'file_type',
             'file_extension', 'is_audio', 'is_video', 'status',
-            'duration', 'language', 'created_at', 'updated_at', 'completed_at'
+            'duration', 'language', 'error_message',
+            'created_at', 'updated_at', 'completed_at'
         ]
         read_only_fields = fields

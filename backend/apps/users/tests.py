@@ -127,6 +127,25 @@ class JWTAuthTests(APITestCase):
         self.assertEqual(refresh_response.status_code, status.HTTP_200_OK)
         self.assertIn('access_token', refresh_response.data)
 
+
+    def test_token_refresh_missing_cookie_fails(self):
+        """Test token refresh fails with 401 when refresh cookie is missing"""
+        refresh_url = reverse('token_refresh')
+        response = self.client.post(refresh_url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertIn('error', response.data)
+
+    def test_cors_preflight_allowed_origin_returns_credentials_header(self):
+        """Test CORS preflight returns Access-Control-Allow-Credentials for allowed origin"""
+        url = reverse('login')
+        response = self.client.options(
+            url,
+            HTTP_ORIGIN='http://localhost:5173',
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD='POST',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), 'http://localhost:5173')
+        self.assertEqual(response.headers.get('Access-Control-Allow-Credentials'), 'true')
     def test_get_current_user_authenticated(self):
         """Test GET /api/users/me/ returns authenticated user's details"""
         url = reverse('me')

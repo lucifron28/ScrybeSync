@@ -11,6 +11,8 @@ const TranscriptionsPage = () => {
   const [error, setError] = useState(null);
   const [retryingId, setRetryingId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [detailsCache, setDetailsCache] = useState({});
+  const [loadingDetailId, setLoadingDetailId] = useState(null);
 
   const fetchTranscripts = useCallback(async () => {
     try {
@@ -30,6 +32,25 @@ const TranscriptionsPage = () => {
     fetchTranscripts();
   }, [fetchTranscripts]);
 
+  // Simple status polling when active jobs are pending or processing
+  const hasActiveJobs = transcripts.some(
+    (t) => t.status === 'pending' || t.status === 'processing'
+  );
+
+  useEffect(() => {
+    if (!hasActiveJobs) return;
+
+    const intervalId = setInterval(async () => {
+      try {
+        const data = await transcriptionService.getTranscripts();
+        setTranscripts(data);
+      } catch (err) {
+        console.error('Polling error:', err);
+      }
+    }, 4000);
+
+    return () => clearInterval(intervalId);
+  }, [hasActiveJobs]);
   const handleRetry = async (id) => {
     setRetryingId(id);
     try {
@@ -39,6 +60,30 @@ const TranscriptionsPage = () => {
       alert(err.response?.data?.error || 'Failed to retry transcription.');
     } finally {
       setRetryingId(null);
+    }
+  };
+
+  const handleToggleTranscript = async (id) => {
+    if (expandedId === id) {
+      setExpandedId(null);
+      return;
+    }
+
+    if (detailsCache[id]) {
+      setExpandedId(id);
+      return;
+    }
+
+    setLoadingDetailId(id);
+    try {
+      const detail = await transcriptionService.getTranscript(id);
+      setDetailsCache((prev) => ({ ...prev, [id]: detail }));
+      setExpandedId(id);
+    } catch (err) {
+      console.error('Failed to load transcript detail:', err);
+      alert('Failed to load transcript details.');
+    } finally {
+      setLoadingDetailId(null);
     }
   };
 
@@ -158,13 +203,13 @@ const TranscriptionsPage = () => {
                         </Button>
                       )}
 
-                      {t.raw_text && (
+                      {t.status === 'completed' && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() =>
-                            setExpandedId(expandedId === t.id ? null : t.id)
-                          }
+                          onClick={() => handleToggleTranscript(t.id)}
+                          loading={loadingDetailId === t.id}
+                          disabled={loadingDetailId === t.id}
                         >
                           {expandedId === t.id ? 'Hide Transcript' : 'View Transcript'}
                         </Button>
@@ -178,13 +223,13 @@ const TranscriptionsPage = () => {
                     </div>
                   )}
 
-                  {expandedId === t.id && t.raw_text && (
+                  {expandedId === t.id && detailsCache[t.id]?.raw_text && (
                     <div className="mt-4 p-4 bg-[var(--bg-surface-elevated)] rounded border border-[var(--border)]">
                       <h3 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2">
                         Transcript Text
                       </h3>
                       <p className="text-sm text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed font-mono">
-                        {t.raw_text}
+                        {detailsCache[t.id].raw_text}
                       </p>
                     </div>
                   )}

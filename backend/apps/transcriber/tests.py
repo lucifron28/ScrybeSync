@@ -119,6 +119,25 @@ class TranscriptSerializerTest(TestCase):
         for field in expected_fields:
             self.assertIn(field, data)
 
+    def test_transcript_list_serializer_excludes_raw_text_and_includes_error_message(self):
+        """Test transcript list serializer is lightweight, excludes raw_text, but includes error_message"""
+        from .serializers import TranscriptListSerializer
+        transcript = Transcript.objects.create(
+            user=self.user,
+            title='Test Transcript',
+            file_name='test.mp3',
+            file_size=1024,
+            file_type='audio/mpeg',
+            status='failed',
+            raw_text='This is a large test transcription body.',
+            error_message='Decoding error'
+        )
+        serializer = TranscriptListSerializer(transcript)
+        data = serializer.data
+        self.assertNotIn('raw_text', data)
+        self.assertIn('error_message', data)
+        self.assertEqual(data['error_message'], 'Decoding error')
+
 
 class TranscriptAPITest(APITestCase):
     def setUp(self):

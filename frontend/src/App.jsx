@@ -13,32 +13,44 @@ import useAuthStore from './store/authStore';
 import { authService } from './services/authService';
 
 function App() {
-  const { setAuth, setLoading, isAuthenticated } = useAuthStore();
+  const { setAuth, setLoading, logout, isAuthenticated, loading } = useAuthStore();
 
   useEffect(() => {
     const initAuth = async () => {
       try {
-        setLoading(true);
         const response = await authService.refreshToken();
         useAuthStore.getState().setAccessToken(response.access_token);
         const user = await authService.getCurrentUser();
         setAuth(user, response.access_token);
       } catch {
-        // No valid session found
+        logout();
       } finally {
         setLoading(false);
       }
     };
 
     initAuth();
-  }, [setAuth, setLoading]);
+  }, [setAuth, setLoading, logout]);
 
   return (
     <ThemeProvider>
       <Router>
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <HomePage />} />
+          <Route
+            path="/"
+            element={
+              loading ? (
+                <div className="min-h-screen bg-[var(--bg-primary)] flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary)]"></div>
+                </div>
+              ) : isAuthenticated ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <HomePage />
+              )
+            }
+          />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           

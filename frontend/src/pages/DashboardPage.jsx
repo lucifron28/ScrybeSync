@@ -20,9 +20,9 @@ const DashboardPage = () => {
       setError(null);
 
       const [summaryData, transcriptList, notesList] = await Promise.all([
-        transcriptionService.getStatusSummary().catch(() => null),
-        transcriptionService.getTranscripts().catch(() => []),
-        notesService.getNotes().catch(() => []),
+        transcriptionService.getStatusSummary(),
+        transcriptionService.getTranscripts(),
+        notesService.getNotes(),
       ]);
 
       const totalTranscripts = summaryData?.total ?? transcriptList.length;
@@ -33,8 +33,11 @@ const DashboardPage = () => {
       setNotes(notesList.slice(0, 5));
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
-      setError('Failed to load dashboard data. Please try again.');
-    } finally {
+      setError('Failed to load workspace data. Please check your connection or try again.');
+      setTranscriptionCount(null);
+      setNoteCount(null);
+      setTranscripts([]);
+      setNotes([]);
       setLoading(false);
     }
   }, []);
@@ -115,7 +118,7 @@ const DashboardPage = () => {
               Transcriptions
             </span>
             <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">
-              {loading ? '...' : transcriptionCount}
+              {loading ? '...' : error ? '—' : transcriptionCount}
             </p>
           </div>
 
@@ -124,7 +127,7 @@ const DashboardPage = () => {
               Notes
             </span>
             <p className="text-2xl font-bold text-[var(--text-primary)] mt-1">
-              {loading ? '...' : noteCount}
+              {loading ? '...' : error ? '—' : noteCount}
             </p>
           </div>
         </div>
@@ -148,6 +151,10 @@ const DashboardPage = () => {
             {loading ? (
               <div className="py-8 text-center text-sm text-[var(--text-secondary)]">
                 Loading transcriptions...
+              </div>
+            ) : error ? (
+              <div className="py-8 text-center text-sm text-[var(--text-secondary)]">
+                Failed to load transcriptions.
               </div>
             ) : transcripts.length === 0 ? (
               <div className="py-8 text-center">
@@ -196,6 +203,10 @@ const DashboardPage = () => {
             {loading ? (
               <div className="py-8 text-center text-sm text-[var(--text-secondary)]">
                 Loading notes...
+              </div>
+            ) : error ? (
+              <div className="py-8 text-center text-sm text-[var(--text-secondary)]">
+                Failed to load notes.
               </div>
             ) : notes.length === 0 ? (
               <div className="py-8 text-center">

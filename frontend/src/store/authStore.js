@@ -4,7 +4,7 @@ const useAuthStore = create((set) => ({
   user: null,
   accessToken: null,
   isAuthenticated: false,
-  loading: false,
+  loading: true,
   theme: localStorage.getItem('theme') || 'light',
 
   setAuth: (user, accessToken) => set({
@@ -18,7 +18,8 @@ const useAuthStore = create((set) => ({
   logout: () => set({
     user: null,
     accessToken: null,
-    isAuthenticated: false
+    isAuthenticated: false,
+    loading: false
   }),
 
   setLoading: (loading) => set({ loading }),
