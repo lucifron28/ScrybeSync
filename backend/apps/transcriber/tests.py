@@ -278,6 +278,60 @@ class TranscriptAPITest(APITestCase):
         self.assertEqual(response.data['completed'], 1)
         self.assertEqual(response.data['failed'], 1)
 
+    @patch('apps.transcriber.tasks.transcribe_audio_task.delay')
+    def test_retry_transcription_failed_success(self, mock_task):
+        """Test retrying a failed transcription succeeds"""
+        transcript = Transcript.objects.create(
+            user=self.user,
+            title='Failed Transcript',
+            file_name='failed.mp3',
+            file_size=1024,
+            file_type='audio/mpeg',
+            status='failed',
+            error_message='Some prior error'
+        )
+        url = reverse('transcript-retry-transcription', kwargs={'pk': transcript.id})
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        transcript.refresh_from_db()
+        self.assertEqual(transcript.status, 'pending')
+        self.assertEqual(transcript.error_message, '')
+        mock_task.assert_called_once_with(transcript.id)
+
+    def test_retry_transcription_completed_fails(self):
+        """Test retrying a completed transcription returns 400"""
+        transcript = Transcript.objects.create(
+            user=self.user,
+            title='Completed Transcript',
+            file_name='completed.mp3',
+            file_size=1024,
+            file_type='audio/mpeg',
+            status='completed'
+        )
+        url = reverse('transcript-retry-transcription', kwargs={'pk': transcript.id})
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('error', response.data)
+        self.assertEqual(response.data['error'], 'Can only retry failed transcriptions')
+
+    def test_retry_transcription_pending_fails(self):
+        """Test retrying a pending transcription returns 400"""
+        transcript = Transcript.objects.create(
+            user=self.user,
+            title='Pending Transcript',
+            file_name='pending.mp3',
+            file_size=1024,
+            file_type='audio/mpeg',
+            status='pending'
+        )
+        url = reverse('transcript-retry-transcription', kwargs={'pk': transcript.id})
+        response = self.client.post(url)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], 'Can only retry failed transcriptions')
+
 
 class TranscriptTaskTest(TestCase):
     def setUp(self):

@@ -88,28 +88,6 @@ const LoginPage = () => {
               error={errors.password?.message}
             />
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--border)] rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-[var(--text-secondary)]">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <Link
-                  to="/forgot-password"
-                  className="font-medium text-[var(--primary)] hover:opacity-80 transition-opacity"
-                >
-                  Forgot your password?
-                </Link>
-              </div>
-            </div>
 
             <Button
               type="submit"
@@ -124,18 +102,6 @@ const LoginPage = () => {
           </form>
         </div>
 
-        <div className="text-center">
-          <p className="text-xs text-[var(--text-secondary)]">
-            By signing in, you agree to our{' '}
-            <Link to="/terms" className="text-[var(--primary)] hover:opacity-80">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link to="/privacy" className="text-[var(--primary)] hover:opacity-80">
-              Privacy Policy
-            </Link>
-          </p>
-        </div>
       </div>
     </div>
   );

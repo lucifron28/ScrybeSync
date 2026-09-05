@@ -35,7 +35,7 @@ class TranscriptViewSet(viewsets.ModelViewSet):
     def retry_transcription(self, request, pk=None):
         transcript = self.get_object()
 
-        if transcript.status not in ['failed', 'completed']:
+        if transcript.status != 'failed':
             return Response(
                 {'error': 'Can only retry failed transcriptions'},
                 status=status.HTTP_400_BAD_REQUEST

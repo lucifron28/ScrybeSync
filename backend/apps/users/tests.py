@@ -97,37 +97,53 @@ class JWTAuthTests(APITestCase):
             last_name='User'
         )
 
-    def test_token_obtain_pair_success(self):
-        """Test successful token generation"""
-        url = reverse('token_obtain_pair')
+    def test_login_success(self):
+        """Test successful login and token generation"""
+        url = reverse('login')
         data = {'username': 'jwtuser', 'password': 'jwtpass123!'}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', response.data)
-        self.assertIn('refresh', response.data)
+        self.assertIn('access_token', response.data)
+        self.assertIn('refresh_token', response.cookies)
+        self.assertEqual(response.data['user']['username'], 'jwtuser')
 
-    def test_token_obtain_pair_invalid_credentials(self):
-        """Test token generation fails with invalid credentials"""
-        url = reverse('token_obtain_pair')
+    def test_login_invalid_credentials(self):
+        """Test login fails with invalid credentials"""
+        url = reverse('login')
         data = {'username': 'jwtuser', 'password': 'wrongpassword'}
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_token_refresh(self):
-        """Test token refresh functionality"""
-        # First get tokens
-        login_url = reverse('token_obtain_pair')
+        """Test token refresh functionality using refresh_token cookie"""
+        login_url = reverse('login')
         login_data = {'username': 'jwtuser', 'password': 'jwtpass123!'}
         login_response = self.client.post(login_url, login_data)
-        refresh_token = login_response.data['refresh']
+        refresh_token = login_response.cookies['refresh_token'].value
         
-        # Test refresh
         refresh_url = reverse('token_refresh')
-        refresh_data = {'refresh': refresh_token}
-        refresh_response = self.client.post(refresh_url, refresh_data)
+        self.client.cookies['refresh_token'] = refresh_token
+        refresh_response = self.client.post(refresh_url)
         self.assertEqual(refresh_response.status_code, status.HTTP_200_OK)
-        self.assertIn('access', refresh_response.data)
+        self.assertIn('access_token', refresh_response.data)
 
+    def test_get_current_user_authenticated(self):
+        """Test GET /api/users/me/ returns authenticated user's details"""
+        url = reverse('me')
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['id'], self.user.id)
+        self.assertEqual(response.data['username'], 'jwtuser')
+        self.assertEqual(response.data['email'], 'jwt@example.com')
+        self.assertEqual(response.data['first_name'], 'JWT')
+        self.assertEqual(response.data['last_name'], 'User')
+
+    def test_get_current_user_unauthenticated(self):
+        """Test GET /api/users/me/ fails when not authenticated"""
+        url = reverse('me')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 class UserModelTests(APITestCase):
     def test_user_creation(self):
         """Test user model creation"""

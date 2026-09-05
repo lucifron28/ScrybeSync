@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     color = models.CharField(max_length=7, default='#007bff')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -16,8 +16,9 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = "Categories"
         ordering = ['name']
-        unique_together = ['name', 'user']
-
+        constraints = [
+            models.UniqueConstraint(fields=['name', 'user'], name='unique_user_category')
+        ]
 class Note(models.Model):
     title = models.CharField(max_length=255)
     content = models.TextField()

@@ -37,6 +37,15 @@ api.interceptors.response.use(
         useAuthStore.getState().setAccessToken(newToken);
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         
+        if (!useAuthStore.getState().user) {
+          try {
+            const meRes = await api.get('/users/me/');
+            useAuthStore.getState().setUser(meRes.data);
+          } catch {
+            // Ignore user restore error
+          }
+        }
+        
         return api(originalRequest);
       } catch (refreshError) {
         useAuthStore.getState().logout();

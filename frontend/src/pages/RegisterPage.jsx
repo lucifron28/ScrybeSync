@@ -137,25 +137,6 @@ const RegisterPage = () => {
               error={errors.confirm_password?.message}
             />
 
-            <div className="flex items-center">
-              <input
-                id="accept-terms"
-                name="accept-terms"
-                type="checkbox"
-                className="h-4 w-4 text-[var(--primary)] focus:ring-[var(--primary)] border-[var(--border)] rounded"
-                required
-              />
-              <label htmlFor="accept-terms" className="ml-2 block text-sm text-[var(--text-secondary)]">
-                I agree to the{' '}
-                <Link to="/terms" className="text-[var(--primary)] hover:opacity-80">
-                  Terms of Service
-                </Link>{' '}
-                and{' '}
-                <Link to="/privacy" className="text-[var(--primary)] hover:opacity-80">
-                  Privacy Policy
-                </Link>
-              </label>
-            </div>
 
             <Button
               type="submit"

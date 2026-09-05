@@ -19,4 +19,9 @@ export const authService = {
     const response = await api.post('/users/token/refresh/');
     return response.data;
   },
+
+  getCurrentUser: async () => {
+    const response = await api.get('/users/me/');
+    return response.data;
+  },
 };

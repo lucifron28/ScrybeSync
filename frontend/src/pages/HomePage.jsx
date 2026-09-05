@@ -8,20 +8,21 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-[var(--bg-primary)]">
       <header className="bg-[var(--bg-surface)] border-b border-[var(--border)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-[var(--text-primary)]">
+              <span className="text-xl font-bold tracking-tight text-[var(--text-primary)]">
                 ScrybeSync
-              </h1>
+              </span>
             </div>
-            
-            <div className="flex items-center space-x-4">
+
+            <div className="flex items-center space-x-3">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={toggleTheme}
                 className="p-2"
+                aria-label="Toggle theme"
               >
                 {theme === 'light' ? (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,16 +34,16 @@ const HomePage = () => {
                   </svg>
                 )}
               </Button>
-              
+
               <Link to="/login">
                 <Button variant="outline" size="sm">
-                  Sign in
+                  Sign In
                 </Button>
               </Link>
-              
+
               <Link to="/register">
                 <Button variant="primary" size="sm">
-                  Get started
+                  Create Account
                 </Button>
               </Link>
             </div>
@@ -50,84 +51,55 @@ const HomePage = () => {
         </div>
       </header>
 
-      <main>
-        {/* Hero Section */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center">
-            <h1 className="text-4xl md:text-6xl font-bold text-[var(--text-primary)] mb-6">
-              Transform Audio to
-              <span className="text-[var(--primary)]"> Organized Notes</span>
-            </h1>
-            <p className="text-xl text-[var(--text-secondary)] mb-8 max-w-3xl mx-auto">
-              ScrybeSync transcribes your audio recordings and automatically organizes them into 
-              searchable, categorized notes. Perfect for meetings, lectures, interviews, and more.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/register">
-                <Button variant="primary" size="lg" className="w-full sm:w-auto">
-                  Start Free Trial
-                </Button>
-              </Link>
-              <Link to="/demo">
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  Watch Demo
-                </Button>
-              </Link>
-            </div>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[var(--text-primary)] mb-4 tracking-tight">
+            ScrybeSync
+          </h1>
+          <p className="text-lg text-[var(--text-secondary)] mb-8">
+            Transcribe recordings, summarize them, and turn them into notes.
+          </p>
+
+          <div className="flex flex-row gap-3 justify-center">
+            <Link to="/login">
+              <Button variant="outline" size="md">
+                Sign In
+              </Button>
+            </Link>
+            <Link to="/register">
+              <Button variant="primary" size="md">
+                Create Account
+              </Button>
+            </Link>
           </div>
         </div>
 
-        {/* Features Section */}
-        <div className="bg-[var(--bg-surface)] border-t border-[var(--border)]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-            <h2 className="text-3xl font-bold text-center text-[var(--text-primary)] mb-12">
-              Everything you need to organize your audio content
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 border-t border-[var(--border)]">
+          <div className="bg-[var(--bg-surface)] p-6 rounded-lg border border-[var(--border)]">
+            <h2 className="text-base font-semibold text-[var(--text-primary)] mb-2">
+              Transcription
             </h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="bg-[var(--primary)] text-[var(--on-primary)] rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
-                  AI Transcription
-                </h3>
-                <p className="text-[var(--text-secondary)]">
-                  Accurate speech-to-text powered by advanced AI technology
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="bg-[var(--secondary)] text-[var(--on-secondary)] rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
-                  Smart Organization
-                </h3>
-                <p className="text-[var(--text-secondary)]">
-                  Automatically categorize and tag your notes for easy retrieval
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="bg-[var(--success)] text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
-                  Powerful Search
-                </h3>
-                <p className="text-[var(--text-secondary)]">
-                  Find any content instantly with full-text search capabilities
-                </p>
-              </div>
-            </div>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+              Upload audio or video files to generate speech-to-text transcripts powered by Whisper.
+            </p>
+          </div>
+
+          <div className="bg-[var(--bg-surface)] p-6 rounded-lg border border-[var(--border)]">
+            <h2 className="text-base font-semibold text-[var(--text-primary)] mb-2">
+              Summarization
+            </h2>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+              Generate structured summaries, key points, and actionable takeaways from completed transcripts.
+            </p>
+          </div>
+
+          <div className="bg-[var(--bg-surface)] p-6 rounded-lg border border-[var(--border)]">
+            <h2 className="text-base font-semibold text-[var(--text-primary)] mb-2">
+              Notes
+            </h2>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+              Organize your insights into markdown notes categorized for easy reference and personal retrieval.
+            </p>
           </div>
         </div>
       </main>

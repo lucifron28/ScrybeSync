@@ -1,220 +1,173 @@
-# ScrybeSync: Transcription & Note-Taking Web App
+# ScrybeSync
 
-A full-stack web application for uploading audio/video, transcribing with Whisper, summarizing via an LLM, and managing markdown-based linked notes.
+ScrybeSync is a personal transcription and note-taking web application. It converts audio/video recordings into transcripts, generates summaries, and lets users organize the results as notes.
 
-## Project Goals
-- **User-Centric UX**: Provide an intuitive dashboard for managing transcripts and notes.
-- **Scalable Architecture**: Use Celery and Redis for background tasks to support concurrent uploads.
-- **Modular Codebase**: Organize into `transcriber`, `summarizer`, `notes`, and `users` apps.
-- **Secure by Default**: Implement JWT-based authentication, HTTPS support, and environment-driven secrets.
+## Product Focus
 
-## Table of Contents
-1. [Features](#features)
-2. [Tech Stack](#tech-stack)
-3. [Project Structure](#project-structure)
-4. [System Design](#system-design)
-5. [Authentication](#authentication)
-6. [API Endpoints](#api-endpoints)
-7. [Getting Started](#getting-started)
-   - [Prerequisites](#prerequisites)
-   - [Installation](#installation)
-   - [Environment Variables](#environment-variables)
-   - [Running Locally](#running-locally)
-8. [Docker Setup](#docker-setup)
-9. [Frontend Setup](#frontend-setup)
-10. [Contributing](#contributing)
-11. [License](#license)
+ScrybeSync is a practical personal productivity tool, not a commercial SaaS application. It is designed for straightforward personal workflows:
+
+* Uploading audio and video recordings
+* Transcribing speech using OpenAI Whisper
+* Generating summaries from completed transcripts
+* Creating and organizing personal markdown notes
 
 ---
 
 ## Features
-- **File Upload**: Upload video/audio files with a progress display.
-- **Transcription**: High-quality speech-to-text using OpenAI Whisper.
-- **Summarization**: LLM-powered extraction of questions, key points, and highlights.
-- **Raw Transcript Viewer**: Scrollable text output for transcripts.
-- **Notes**:
-  - Markdown editor with live preview.
-  - Full CRUD operations (Create, Read, Update, Delete).
-  - Bi-directional linked notes.
-  - Support for external link attachments.
+
+### Implemented
+- **User Authentication**: Simple user registration, login, logout, HttpOnly refresh cookie rotation, and an authenticated `/api/users/me/` endpoint to restore user state.
+- **Media Upload**: File upload support for common audio formats (`.mp3`, `.wav`, `.m4a`, `.flac`, `.ogg`) and video formats (`.mp4`, `.avi`, `.mov`, `.mkv`, `.webm`).
+- **Asynchronous Transcription**: Background transcription worker via Celery and OpenAI Whisper.
+- **Retry Mechanism**: Dedicated retry endpoint strictly for failed transcriptions.
+- **Transcript Summarization**: Asynchronous summary generation for completed transcripts using LLMs (Gemini).
+- **Notes Management**: Create, view, update, and delete personal notes.
+- **User-Isolated Categories**: Categories are scoped per user (e.g. two users can both create a "School" category, but a single user cannot create duplicates). Server-side validation prevents cross-user category assignment.
+- **Practical Workspace**: Minimal dashboard featuring recent transcriptions, recent notes, and real item counts.
+- **Theme Support**: Light and dark mode with persistent user preference.
+
+### Planned
+- **URL Import**: Direct media importing from YouTube and other video/audio platforms using `yt-dlp`.
+- **Interactive Transcript Viewer**: Timed segment viewer with inline note-taking and section clipping.
+- **Bi-directional Note Linking**: Interconnected personal wiki-style note references.
+
+---
 
 ## Tech Stack
-- **Backend**: Python, Django 4.x, Django REST Framework, Celery
-- **Transcription**: Whisper (OpenAI) + FFmpeg
-- **LLM**: OpenAI API (GPT-4 / GPT-3.5) or local model
-- **Database**: PostgreSQL
-- **Async Broker**: Redis
-- **Frontend**: React 18.x, Vite, Tailwind CSS, React Router
-- **Markdown**: react-markdown, remark-gfm or @uiw/react-md-editor
-- **Containerization**: Docker & Docker Compose
 
-## Project Structure
+### Backend
+- **Framework**: Django 5.2 & Django REST Framework
+- **Database**: PostgreSQL (with SQLite support for local development/testing)
+- **Task Queue**: Celery & Redis
+- **Transcription Engine**: OpenAI Whisper & FFmpeg
+- **LLM Integration**: Google Generative AI (Gemini)
 
-```text
-scrybesync/
-│
-├── backend/
-│   ├── manage.py
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   ├── docker-compose.yml
-│   ├── config/
-│   │   ├── settings.py
-│   │   ├── urls.py
-│   │   └── wsgi.py
-│   ├── apps/
-│   │   ├── users/            # User registration, JWT auth
-│   │   ├── transcriber/      # Upload, Whisper integration
-│   │   ├── summarizer/       # LLM calls & parsing
-│   │   └── notes/            # Note model, linking logic
-│   ├── media/                # Uploaded files
-│   └── logs/
-│
-└── frontend/
-    ├── public/
-    │   └── favicon.ico
-    ├── src/
-    │   ├── components/
-    │   │   ├── Auth/         # Login, Register forms
-    │   │   ├── Transcription/
-    │   │   ├── Notes/
-    │   │   └── Layout/
-    │   ├── pages/
-    │   │   ├── Dashboard.jsx
-    │   │   ├── Transcribe.jsx
-    │   │   ├── NotesList.jsx
-    │   │   └── NoteDetail.jsx
-    │   ├── hooks/
-    │   ├── services/          # Axios API clients
-    │   ├── App.jsx
-    │   └── main.jsx
-    ├── tailwind.config.js
-    └── package.json
-```
+### Frontend
+- **Framework**: React 19 & Vite 6
+- **Routing**: React Router 7
+- **Styling**: Tailwind CSS 4
+- **State Management**: Zustand
+- **HTTP Client**: Axios
 
-## System Design
-
-1. **Client → API Gateway**
-   - React frontend uses Axios to call DRF endpoints (with JWT in `Authorization` header).
-
-2. **API Server (Django + DRF)**
-   - **Upload Endpoint**: Accepts audio/video, saves to `media/`, enqueues Celery task.
-   - **Transcription Worker** (Celery):
-     1. Downloads file.
-     2. Runs Whisper (`whisper.transcribe()`).
-     3. Saves raw text to DB.
-     4. Notifies user via polling or WebSocket.
-   - **Summarization Worker** (Celery):
-     1. Takes transcript.
-     2. Calls OpenAI API with prompts.
-     3. Stores highlights, questions, summary JSON.
-
-3. **Database (PostgreSQL)**
-   - **User**: `username`, `email`, `password_hash`
-   - **Transcript**: `user`, `file_path`, `raw_text`, `status`, `created_at`
-   - **Summary**: `transcript`, `highlights`, `questions`, `notes`, `created_at`
-   - **Note**: `user`, `title`, `content (md)`, `linked_notes (M2M)`, `external_links (JSON)`
-
-4. **Cache & Broker (Redis)**
-   - Celery broker & result backend.
-   - Optional caching of API responses.
-
-## Authentication
-
-- **Register**: `POST /api/auth/register/`
-  - Request: `{ "username", "email", "password" }`
-  - Response: `{ "access", "refresh" }`
-
-- **Login**: `POST /api/auth/login/`
-  - Request: `{ "username", "password" }`
-  - Response: `{ "access", "refresh" }`
-
-- **Refresh Token**: `POST /api/auth/token/refresh/`
-  - Request: `{ "refresh" }`
-  - Response: `{ "access" }`
-
-- **Protected Endpoints** require `Authorization: Bearer <access_token>`
+---
 
 ## API Endpoints
 
-| Path                       | Method | Description                              |
-|----------------------------|--------|------------------------------------------|
-| `/api/auth/register/`      | POST   | Create user & return JWT tokens          |
-| `/api/auth/login/`         | POST   | Authenticate & return JWT tokens         |
-| `/api/transcripts/`        | POST   | Upload file → enqueue Whisper task       |
-| `/api/transcripts/`        | GET    | List user’s transcripts & statuses       |
-| `/api/transcripts/{id}/`   | GET    | Retrieve raw transcript & summary JSON   |
-| `/api/summaries/`          | POST   | Trigger LLM summarization on a transcript|
-| `/api/notes/`              | GET    | List all notes                           |
-| `/api/notes/`              | POST   | Create a new markdown note               |
-| `/api/notes/{id}/`         | GET    | Retrieve note details                    |
-| `/api/notes/{id}/`         | PUT    | Update note content/links                |
-| `/api/notes/{id}/`         | DELETE | Delete a note                            |
+### Authentication & Users
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/users/register/` | Register a new user |
+| `POST` | `/api/users/login/` | Authenticate with credentials; returns access token and sets HttpOnly refresh cookie |
+| `POST` | `/api/users/token/refresh/` | Refresh access token using HttpOnly cookie |
+| `POST` | `/api/users/logout/` | Invalidate refresh token and clear session |
+| `GET` | `/api/users/me/` | Retrieve currently authenticated user profile |
 
-## Getting Started
+### Transcripts
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/transcriber/transcripts/` | List current user's transcripts |
+| `POST` | `/api/transcriber/transcripts/` | Upload audio/video file and queue transcription |
+| `GET` | `/api/transcriber/transcripts/{id}/` | Retrieve transcript details and text |
+| `POST` | `/api/transcriber/transcripts/{id}/retry_transcription/` | Retry a failed transcription |
+| `GET` | `/api/transcriber/transcripts/status_summary/` | Get transcript count summary by status |
+| `DELETE` | `/api/transcriber/transcripts/{id}/` | Delete a transcript |
 
-### Prerequisites
-- Python 3.11+
-- Node.js 18.x & npm
-- PostgreSQL 14+
-- Redis
-- FFmpeg
+### Summaries
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/summarizer/summaries/` | List current user's summaries |
+| `POST` | `/api/summarizer/summaries/` | Generate summary for a completed transcript |
+| `GET` | `/api/summarizer/summaries/{id}/` | Retrieve summary details |
+| `POST` | `/api/summarizer/summaries/{id}/regenerate/` | Regenerate summary content |
+| `GET` | `/api/summarizer/summaries/status_summary/` | Get summary count summary by status |
+| `DELETE` | `/api/summarizer/summaries/{id}/` | Delete a summary |
 
-### Installation
+### Notes & Categories
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/notes/notes/` | List current user's notes |
+| `POST` | `/api/notes/notes/` | Create a note (server validates category ownership) |
+| `GET` | `/api/notes/notes/{id}/` | Retrieve note details |
+| `PATCH` | `/api/notes/notes/{id}/` | Update note content or category |
+| `DELETE` | `/api/notes/notes/{id}/` | Delete a note |
+| `GET` | `/api/notes/categories/` | List current user's categories |
+| `POST` | `/api/notes/categories/` | Create a category (scoped uniquely per user) |
+| `DELETE` | `/api/notes/categories/{id}/` | Delete a category |
 
+---
+
+## Configuration & Environment Variables
+
+### Backend (`backend/.env`)
 ```bash
-git clone https://github.com/lucifron28/scrybesync.git
-cd scrybesync/backend
+SECRET_KEY=your_django_secret_key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database (defaults to PostgreSQL, or set USE_SQLITE=True for local dev/testing)
+USE_SQLITE=False
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=scrybesync_db
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_HOST=localhost
+DB_PORT=5432
+
+# Celery & Redis
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+
+# AI & Media
+GEMINI_API_KEY=your_gemini_api_key
+WHISPER_MODEL=base
+WHISPER_DEVICE=cpu
+MAX_UPLOAD_SIZE=100MB
+```
+
+### Frontend (`frontend/.env`)
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:8000/api
+```
+
+---
+
+## Running Locally
+
+### Backend
+```bash
+cd backend
 python -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate  # Or .venv\Scripts\activate on Windows
 pip install -r requirements.txt
 python manage.py migrate
-```
-
-### Environment Variables
-
-In `backend/.env`:
-
-```
-DJANGO_SECRET_KEY=your_secret_key
-DEBUG=True
-DATABASE_URL=postgres://user:pass@db:5432/scrybesync
-REDIS_URL=redis://redis:6379/0
-OPENAI_API_KEY=your_openai_key
-```
-
-### Running Locally
-
-```bash
-redis-server
-celery -A config worker -l info
 python manage.py runserver
 ```
 
-## Docker Setup
-
+To run Celery worker:
 ```bash
-docker-compose up --build
+celery -A backend worker -l info
 ```
 
-## Frontend Setup
-
+To run backend tests:
 ```bash
-cd ../frontend
+python manage.py test
+```
+
+### Frontend
+```bash
+cd frontend
 npm install
 npm run dev
 ```
 
-Access at `http://localhost:3000`
+To run frontend lint and build:
+```bash
+npm run lint
+npm run build
+```
 
-## Contributing
-
-1. Fork the repo
-2. Create a feature branch (`git checkout -b feature/foo`)
-3. Commit your changes (`git commit -am "Add foo"`)
-4. Push to the branch (`git push origin feature/foo`)
-5. Open a Pull Request
+---
 
 ## License
 
-MIT © Ron Vincent Cada
+MIT

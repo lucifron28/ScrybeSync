@@ -6,6 +6,9 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import TranscriptionsPage from './pages/TranscriptionsPage';
+import NewTranscriptionPage from './pages/NewTranscriptionPage';
+import NotesPage from './pages/NotesPage';
 import useAuthStore from './store/authStore';
 import { authService } from './services/authService';
 
@@ -17,9 +20,11 @@ function App() {
       try {
         setLoading(true);
         const response = await authService.refreshToken();
-        setAuth({ username: 'User' }, response.access_token);
-      } catch (error) {
-        console.log('No valid session found');
+        useAuthStore.getState().setAccessToken(response.access_token);
+        const user = await authService.getCurrentUser();
+        setAuth(user, response.access_token);
+      } catch {
+        // No valid session found
       } finally {
         setLoading(false);
       }
@@ -43,6 +48,30 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/transcriptions" 
+            element={
+              <ProtectedRoute>
+                <TranscriptionsPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/transcriptions/new" 
+            element={
+              <ProtectedRoute>
+                <NewTranscriptionPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/notes" 
+            element={
+              <ProtectedRoute>
+                <NotesPage />
               </ProtectedRoute>
             } 
           />
